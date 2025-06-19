@@ -503,7 +503,6 @@
                             for (let x=0; x<MAZE_COLS; x++) {
                                 if (maze[y][x] === 0) {
                                     ctx.fillStyle = '#178a2c';
-                                    // Elimina el margen para que no haya líneas blancas
                                     ctx.fillRect(
                                         Math.round(OFFSET_X + x*CELL),
                                         Math.round(OFFSET_Y + y*CELL),
@@ -513,7 +512,7 @@
                                 }
                             }
                         }
-                        // Objetivo: círculo azul brillante y llamativo
+                        // META: círculo azul MUY llamativo con nueva animación (pulsante y giro de halo)
                         const goalX = MAZE_COLS - 1, goalY = Math.floor(MAZE_ROWS / 2);
                         const cx = OFFSET_X + goalX * CELL + CELL / 2;
                         const cy = OFFSET_Y + goalY * CELL + CELL / 2;
@@ -521,35 +520,37 @@
                         const t = Date.now();
                         const glow = 0.5 + 0.5 * Math.sin(t / 220);
 
-                        // Efecto de halo exterior animado
+                        // Halo exterior giratorio y pulsante
                         ctx.save();
-                        ctx.globalAlpha = 0.45 + 0.25 * glow;
+                        ctx.globalAlpha = 0.38 + 0.22 * glow;
+                        ctx.translate(cx, cy);
+                        ctx.rotate((t / 900) % (2 * Math.PI));
                         ctx.shadowColor = "#00e0ff";
-                        ctx.shadowBlur = 60 + 30 * glow;
+                        ctx.shadowBlur = 48 + 24 * glow;
                         ctx.beginPath();
-                        ctx.arc(cx, cy, goalRadius * (1.7 + 0.08 * Math.sin(t / 120)), 0, 2 * Math.PI);
+                        ctx.ellipse(0, 0, goalRadius * (1.8 + 0.12 * Math.sin(t / 180)), goalRadius * (1.2 + 0.08 * Math.cos(t / 140)), 0, 0, 2 * Math.PI);
                         ctx.closePath();
                         ctx.fillStyle = "#00e0ff";
                         ctx.fill();
                         ctx.restore();
 
-                        // Círculo exterior azul claro con sombra
+                        // Círculo exterior azul claro con sombra y pulso
                         ctx.save();
-                        ctx.globalAlpha = 0.96;
+                        ctx.globalAlpha = 0.92;
                         ctx.shadowColor = "#00e0ff";
-                        ctx.shadowBlur = 36 + 24 * glow;
+                        ctx.shadowBlur = 28 + 18 * glow;
                         ctx.beginPath();
-                        ctx.arc(cx, cy, goalRadius * 1.18, 0, 2 * Math.PI);
+                        ctx.arc(cx, cy, goalRadius * (1.08 + 0.06 * Math.sin(t / 180)), 0, 2 * Math.PI);
                         ctx.closePath();
                         ctx.fillStyle = "#b3e5fc";
                         ctx.fill();
                         ctx.restore();
 
-                        // Círculo interior azul intenso con degradado
+                        // Círculo interior azul intenso con degradado y pulso
                         ctx.save();
                         ctx.globalAlpha = 1;
                         ctx.beginPath();
-                        ctx.arc(cx, cy, goalRadius, 0, 2 * Math.PI);
+                        ctx.arc(cx, cy, goalRadius * (1 + 0.04 * Math.cos(t / 150)), 0, 2 * Math.PI);
                         ctx.closePath();
                         const grad = ctx.createRadialGradient(cx, cy, goalRadius * 0.2, cx, cy, goalRadius);
                         grad.addColorStop(0, "#e3f2fd");
@@ -559,49 +560,47 @@
                         ctx.fill();
                         ctx.restore();
 
-                        // Efecto de destello animado
+                        // Efecto de destello animado (más suave)
                         ctx.save();
-                        ctx.globalAlpha = 0.32 + 0.32 * glow;
+                        ctx.globalAlpha = 0.22 + 0.22 * glow;
                         ctx.beginPath();
-                        ctx.arc(cx, cy, goalRadius * (1.25 + 0.08 * Math.sin(t / 120)), 0, 2 * Math.PI);
+                        ctx.arc(cx, cy, goalRadius * (1.18 + 0.06 * Math.sin(t / 120)), 0, 2 * Math.PI);
                         ctx.closePath();
                         ctx.fillStyle = "#fff";
                         ctx.fill();
                         ctx.restore();
 
-                        // Efecto de brillo tipo "estrella"
+                        // Efecto de brillo tipo "estrella" girando
                         ctx.save();
-                        ctx.globalAlpha = 0.7 + 0.3 * glow;
+                        ctx.globalAlpha = 0.5 + 0.3 * glow;
                         ctx.strokeStyle = "#fff";
-                        ctx.lineWidth = 2.5;
+                        ctx.lineWidth = 2.2;
+                        ctx.translate(cx, cy);
+                        ctx.rotate((t / 1400) % (2 * Math.PI));
                         for (let i = 0; i < 8; i++) {
+                            ctx.save();
+                            ctx.rotate((Math.PI / 4) * i);
                             ctx.beginPath();
-                            const angle = (Math.PI / 4) * i + (t / 1200);
-                            ctx.moveTo(
-                                cx + Math.cos(angle) * (goalRadius * 0.4),
-                                cy + Math.sin(angle) * (goalRadius * 0.4)
-                            );
-                            ctx.lineTo(
-                                cx + Math.cos(angle) * (goalRadius * 1.1 + 6 * Math.sin(t / 300 + i)),
-                                cy + Math.sin(angle) * (goalRadius * 1.1 + 6 * Math.sin(t / 300 + i))
-                            );
+                            ctx.moveTo(goalRadius * 0.3, 0);
+                            ctx.lineTo(goalRadius * (1.05 + 0.08 * Math.sin(t / 300 + i)), 0);
                             ctx.stroke();
+                            ctx.restore();
                         }
                         ctx.restore();
 
-                        ctx.fillStyle = ai.color;
-                        ctx.fillRect(
-                            OFFSET_X + ai.x*CELL + getPlayerOffset(),
-                            OFFSET_Y + ai.y*CELL + getPlayerOffset(),
-                            getPlayerSize(), getPlayerSize()
-                        );
-                        ctx.fillStyle = player.color;
-                        ctx.fillRect(
-                            OFFSET_X + player.x*CELL + getPlayerOffset(),
-                            OFFSET_Y + player.y*CELL + getPlayerOffset(),
-                            getPlayerSize(), getPlayerSize()
-                        );
-                    }
+    ctx.fillStyle = ai.color;
+    ctx.fillRect(
+        OFFSET_X + ai.x*CELL + getPlayerOffset(),
+        OFFSET_Y + ai.y*CELL + getPlayerOffset(),
+        getPlayerSize(), getPlayerSize()
+    );
+    ctx.fillStyle = player.color;
+    ctx.fillRect(
+        OFFSET_X + player.x*CELL + getPlayerOffset(),
+        OFFSET_Y + player.y*CELL + getPlayerOffset(),
+        getPlayerSize(), getPlayerSize()
+    );
+}
                     function aiAdvance() {
                         if (ai.step < ai.path.length-1) {
                             ai.step++;
@@ -629,17 +628,20 @@
                             `;
                             mazeContainer.insertAdjacentHTML('beforeend', html);
                             document.getElementById('maze-show-clue').onclick = function() {
-                                document.getElementById('maze-end').innerHTML = `
-        <h2 style="margin-top:0;">Siguiente pista</h2>
-        <div id="maze-next-img" style="margin:0; padding:0;">
+    // Usa el mismo espacio para imagen que el ejemplo (pong-next-img)
+    document.getElementById('maze-end').innerHTML = `
+        <div class="arbol-chan-titulo" style="color:#178a2c;margin-bottom:0.7rem;font-size:2.2rem;text-shadow:0 2px 12px #fff,0 0 12px #178a2c,2px 2px 0 #fff;">
+            Siguiente pista
+        </div>
+        <div id="maze-next-img" style="width:60vw;max-width:300px;min-width:120px;height:180px;background:#fff;margin:0;display:flex;align-items:center;justify-content:center;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px #178a2c33;">
             <img src="iguana.jpeg" alt="Pista" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:12px 12px 12px 12px;">
         </div>
         <button id="maze-continue" style="font-size:1.3rem;background:#178a2c;color:#fff;border:2px solid #fff;border-radius:8px;padding:0.7rem 2.5rem;font-weight:bold;font-family:'Montserrat',Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;margin-top:1.5rem;margin-bottom:2rem;">Continuar</button>
     `;
-                                document.getElementById('maze-continue').onclick = function() {
-                                    window.location.href = "https://danjua77.github.io/Sagrado.Puzzle/";
-                                };
-                            };
+    document.getElementById('maze-continue').onclick = function() {
+        window.location.href = "https://danjua77.github.io/Sagrado.Puzzle/";
+    };
+};
                         } else {
                             html = `
                                 <div id="pong-end">
@@ -676,39 +678,23 @@
                             checkWin();
                         }
                     }
-                    // Movimiento continuo para los controles del laberinto
-                    function addHoldButton(id, dx, dy) {
+                    // Movimiento SOLO por pulsación (no continuo) para los controles del laberinto
+                    function addSinglePressButton(id, dx, dy) {
                         const btn = document.getElementById(id);
-                        let interval = null;
-                        let pressed = false;
-                        const move = () => movePlayer(dx, dy);
                         btn.addEventListener('mousedown', () => {
                             if (finished) return;
-                            pressed = true;
-                            move();
-                            interval = setInterval(move, 90);
+                            movePlayer(dx, dy);
                         });
                         btn.addEventListener('touchstart', (e) => {
                             if (finished) return;
-                            pressed = true;
-                            move();
-                            interval = setInterval(move, 90);
+                            movePlayer(dx, dy);
                             e.preventDefault();
                         }, {passive: false});
-                        function clear() {
-                            pressed = false;
-                            if (interval) clearInterval(interval);
-                            interval = null;
-                        }
-                        btn.addEventListener('mouseup', clear);
-                        btn.addEventListener('mouseleave', clear);
-                        btn.addEventListener('touchend', clear);
-                        btn.addEventListener('touchcancel', clear);
                     }
-                    addHoldButton('maze-up', 0, -1);
-                    addHoldButton('maze-down', 0, 1);
-                    addHoldButton('maze-left', -1, 0);
-                    addHoldButton('maze-right', 1, 0);
+                    addSinglePressButton('maze-up', 0, -1);
+                    addSinglePressButton('maze-down', 0, 1);
+                    addSinglePressButton('maze-left', -1, 0);
+                    addSinglePressButton('maze-right', 1, 0);
 
                     document.addEventListener('keydown', function(e) {
                         if (e.key === 'ArrowUp') movePlayer(0, -1);
@@ -722,13 +708,11 @@
                     setInterval(() => {
                         if (!finished) {
                             aiTick++;
-                            // La IA avanza cada 2 ticks (~cada 285ms)
-                            if (aiTick % 2 === 0) {
-                                aiAdvance();
-                                checkWin();
-                            }
+                            // La IA avanza cada tick (~cada 175ms)
+                            aiAdvance();
+                            checkWin();
                         }
-                    }, 115);
+                    }, 175); // antes 115, ahora 90ms para más velocidad
 
                     requestAnimationFrame(function loop() {
                         if (!finished) draw();
