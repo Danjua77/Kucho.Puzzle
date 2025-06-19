@@ -503,24 +503,92 @@
                             for (let x=0; x<MAZE_COLS; x++) {
                                 if (maze[y][x] === 0) {
                                     ctx.fillStyle = '#178a2c';
-                                    ctx.fillRect(OFFSET_X + x*CELL, OFFSET_Y + y*CELL, CELL, CELL);
+                                    // Elimina el margen para que no haya líneas blancas
+                                    ctx.fillRect(
+                                        Math.round(OFFSET_X + x*CELL),
+                                        Math.round(OFFSET_Y + y*CELL),
+                                        Math.ceil(CELL),
+                                        Math.ceil(CELL)
+                                    );
                                 }
                             }
                         }
-                        const goalX = MAZE_COLS-1, goalY = Math.floor(MAZE_ROWS/2);
+                        // Objetivo: círculo azul brillante y llamativo
+                        const goalX = MAZE_COLS - 1, goalY = Math.floor(MAZE_ROWS / 2);
+                        const cx = OFFSET_X + goalX * CELL + CELL / 2;
+                        const cy = OFFSET_Y + goalY * CELL + CELL / 2;
+                        const goalRadius = CELL * 0.38;
                         const t = Date.now();
-                        const glow = 0.5 + 0.5 * Math.sin(t/220);
+                        const glow = 0.5 + 0.5 * Math.sin(t / 220);
+
+                        // Efecto de halo exterior animado
                         ctx.save();
-                        ctx.shadowColor = "#ff0";
-                        ctx.shadowBlur = 20 + 20 * glow;
-                        ctx.globalAlpha = 0.9;
-                        ctx.fillStyle = "#ff0";
-                        ctx.fillRect(
-                            OFFSET_X + goalX*CELL + 2,
-                            OFFSET_Y + goalY*CELL + 2,
-                            CELL - 4, CELL - 4
-                        );
+                        ctx.globalAlpha = 0.45 + 0.25 * glow;
+                        ctx.shadowColor = "#00e0ff";
+                        ctx.shadowBlur = 60 + 30 * glow;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, goalRadius * (1.7 + 0.08 * Math.sin(t / 120)), 0, 2 * Math.PI);
+                        ctx.closePath();
+                        ctx.fillStyle = "#00e0ff";
+                        ctx.fill();
                         ctx.restore();
+
+                        // Círculo exterior azul claro con sombra
+                        ctx.save();
+                        ctx.globalAlpha = 0.96;
+                        ctx.shadowColor = "#00e0ff";
+                        ctx.shadowBlur = 36 + 24 * glow;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, goalRadius * 1.18, 0, 2 * Math.PI);
+                        ctx.closePath();
+                        ctx.fillStyle = "#b3e5fc";
+                        ctx.fill();
+                        ctx.restore();
+
+                        // Círculo interior azul intenso con degradado
+                        ctx.save();
+                        ctx.globalAlpha = 1;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, goalRadius, 0, 2 * Math.PI);
+                        ctx.closePath();
+                        const grad = ctx.createRadialGradient(cx, cy, goalRadius * 0.2, cx, cy, goalRadius);
+                        grad.addColorStop(0, "#e3f2fd");
+                        grad.addColorStop(0.5, "#2196f3");
+                        grad.addColorStop(1, "#1565c0");
+                        ctx.fillStyle = grad;
+                        ctx.fill();
+                        ctx.restore();
+
+                        // Efecto de destello animado
+                        ctx.save();
+                        ctx.globalAlpha = 0.32 + 0.32 * glow;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, goalRadius * (1.25 + 0.08 * Math.sin(t / 120)), 0, 2 * Math.PI);
+                        ctx.closePath();
+                        ctx.fillStyle = "#fff";
+                        ctx.fill();
+                        ctx.restore();
+
+                        // Efecto de brillo tipo "estrella"
+                        ctx.save();
+                        ctx.globalAlpha = 0.7 + 0.3 * glow;
+                        ctx.strokeStyle = "#fff";
+                        ctx.lineWidth = 2.5;
+                        for (let i = 0; i < 8; i++) {
+                            ctx.beginPath();
+                            const angle = (Math.PI / 4) * i + (t / 1200);
+                            ctx.moveTo(
+                                cx + Math.cos(angle) * (goalRadius * 0.4),
+                                cy + Math.sin(angle) * (goalRadius * 0.4)
+                            );
+                            ctx.lineTo(
+                                cx + Math.cos(angle) * (goalRadius * 1.1 + 6 * Math.sin(t / 300 + i)),
+                                cy + Math.sin(angle) * (goalRadius * 1.1 + 6 * Math.sin(t / 300 + i))
+                            );
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+
                         ctx.fillStyle = ai.color;
                         ctx.fillRect(
                             OFFSET_X + ai.x*CELL + getPlayerOffset(),
