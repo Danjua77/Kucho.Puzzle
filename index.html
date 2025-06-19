@@ -261,6 +261,9 @@
             justify-content: flex-start;
             background: url('fonde mesa.jpg') no-repeat center center, linear-gradient(180deg, #e8f5e9 0%, #178a2c 100%);
             background-size: cover;
+            /* Añade padding-top para subir el canvas */
+            padding-top: 4vh;
+            box-sizing: border-box;
         }
         #maze-canvas {
             background: #fff;
@@ -274,15 +277,19 @@
             min-height: 180px;
             aspect-ratio: 16/9;
             touch-action: none;
-            margin-top: 6vh; /* sube el canvas un poco */
+            display: block;
+            margin: 0 auto;
         }
         #maze-controls {
-            /* Ya no es fixed, solo margen arriba */
-            margin-top: 2.5vh;
+            /* Ya no es fixed, sino relativo y debajo del canvas */
+            width: 100vw;
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin-top: 12px;
+            margin-bottom: 0;
             z-index: 2;
+            position: static;
         }
         #maze-controls div {
             display: flex;
@@ -306,6 +313,18 @@
             color: #178a2c;
             border: 2px solid #ffe44d;
         }
+        #ost-text {
+            width: 100vw;
+            text-align: center;
+            z-index: 20;
+            font-family: 'Montserrat',Arial,sans-serif;
+            font-size: 1.05rem;
+            color: #fff;
+            text-shadow: 0 2px 8px #000;
+            margin-top: 10px;
+            margin-bottom: 0;
+            position: static;
+        }
     </style>
     <div id="maze-container">
         <canvas id="maze-canvas"></canvas>
@@ -319,9 +338,9 @@
                 <button id="maze-right">▶</button>
             </div>
         </div>
-    </div>
-    <div id="ost-text" style="position:fixed;bottom:18px;left:0;width:100vw;text-align:center;z-index:20;font-family:'Montserrat',Arial,sans-serif;font-size:1.05rem;color:#fff;text-shadow:0 2px 8px #000;">
-        OST: Green Hill Zone - Sonic The Hedgehog
+        <div id="ost-text">
+            OST: Green Hill Zone - Sonic The Hedgehog
+        </div>
     </div>
     <audio id="maze-audio" src="abuelotime.mp3" loop></audio>
 `;
