@@ -486,30 +486,26 @@
                         let html = '';
                         if (playerWon) {
                             html = `
-                                <div class="arbol-chan-container" id="maze-end" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:10;background:url('Fondo texto.jpg') no-repeat center center;background-size:cover;display:flex;flex-direction:column;justify-content:center;align-items:center;">
-                                    <div class="arbol-chan-content" style="background:none;box-shadow:none;">
-                                        <img src="abuelo.sama.png" class="arbol-chan-img" alt="Don Árbol" style="opacity:1;transform:none;margin-bottom:0.7rem;" />
-                                        <div class="arbol-chan-titulo" style="color:#178a2c;margin-bottom:0.7rem;">Kucho</div>
-                                        <div class="arbol-chan-texto" style="color:#fff;">
-                                            ¡Excelente desempeño, noble usuario!<br>
-                                            Ha demostrado valor y precisión.<br><br>
-                                            Como prometí, le concederé una pista, la cual que es una foto tomada en este parque.<br><br>
-                                            Busca el lugar, observa con atención... y encuentra el código.<br>
-                                            Y recuerde nunca rendirse.
-                                        </div>
-                                        <button id="maze-show-clue" class="btn-continuar" style="margin-top:1.2rem;">Ver pista</button>
-                                    </div>
-                                </div>
+        <div class="arbol-chan-container" id="maze-end" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:10;background:url('Fondo texto.jpg') no-repeat center center;background-size:cover;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+            <div class="arbol-chan-content" style="background:none;box-shadow:none;">
+                <img src="abuelo.sama.png" class="arbol-chan-img" alt="Don Árbol" style="opacity:1;transform:none;margin-bottom:0.7rem;" />
+                <div class="arbol-chan-titulo" style="color:#178a2c;margin-bottom:0.7rem;">Kucho</div>
+                <div class="arbol-chan-texto" style="color:#fff;">
+                    ¿Quién eres? ¿Dónde estoy?
+                </div>
+                <button id="maze-show-clue" class="btn-continuar" style="margin-top:1.2rem;">Ver pista</button>
+            </div>
+        </div>
                             `;
                             mazeContainer.insertAdjacentHTML('beforeend', html);
                             document.getElementById('maze-show-clue').onclick = function() {
                                 document.getElementById('maze-end').innerHTML = `
-                                    <h2 style="margin-top:0;">Siguiente pista</h2>
-                                    <div id="maze-next-img" style="margin:0; padding:0;">
-                                        <img src="gym.jpeg" alt="Pista" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:12px 12px 12px 12px;">
-                                    </div>
-                                    <button id="maze-continue" style="font-size:1.3rem;background:#178a2c;color:#fff;border:2px solid #fff;border-radius:8px;padding:0.7rem 2.5rem;font-weight:bold;font-family:'Montserrat',Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;margin-top:1.5rem;margin-bottom:2rem;">Continuar</button>
-                                `;
+        <h2 style="margin-top:0;">Siguiente pista</h2>
+        <div id="maze-next-img" style="margin:0; padding:0;">
+            <img src="iguana.jpeg" alt="Pista" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:12px 12px 12px 12px;">
+        </div>
+        <button id="maze-continue" style="font-size:1.3rem;background:#178a2c;color:#fff;border:2px solid #fff;border-radius:8px;padding:0.7rem 2.5rem;font-weight:bold;font-family:'Montserrat',Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;margin-top:1.5rem;margin-bottom:2rem;">Continuar</button>
+    `;
                                 document.getElementById('maze-continue').onclick = function() {
                                     window.location.href = "https://danjua77.github.io/Sagrado.Puzzle/";
                                 };
