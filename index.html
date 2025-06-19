@@ -202,6 +202,65 @@
             background: #176d13;
             border: 2px solid #ffe44d;
         }
+        /* Estilos del laberinto */
+        #maze-container {
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: url('fonde mesa.jpg') no-repeat center center, linear-gradient(180deg, #e8f5e9 0%, #178a2c 100%);
+            background-size: cover;
+            flex-direction: column;
+            /* Quita padding-top */
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #maze-canvas {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 0 32px 4px #178a2c88, 0 0 0 4px #178a2c;
+            width: 99vw;
+            height: 75vw;
+            max-width: 520px;
+            max-height: 400px;
+            min-width: 260px;
+            min-height: 180px;
+            aspect-ratio: 16/9;
+            touch-action: none;
+            display: block;
+        }
+        #maze-controls {
+            margin-top: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            width: auto;
+        }
+        #maze-controls div {
+            display: flex;
+            gap: 10px;
+        }
+        #maze-controls button {
+            width: 60px;
+            height: 60px;
+            font-size: 2em;
+            border-radius: 50%;
+            background: #178a2c;
+            color: #fff;
+            border: 2px solid #fff;
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-weight: bold;
+            box-shadow: 0 2px 8px #178a2c33;
+            cursor: pointer;
+        }
+        #maze-controls button:active {
+            background: #ffe44d;
+            color: #178a2c;
+            border: 2px solid #ffe44d;
+        }
     </style>
 </head>
 <body>
@@ -254,16 +313,17 @@
     <style>
         #maze-container {
             width: 100vw;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             background: url('fonde mesa.jpg') no-repeat center center, linear-gradient(180deg, #e8f5e9 0%, #178a2c 100%);
             background-size: cover;
-            /* Añade padding-top para subir el canvas */
-            padding-top: 4vh;
-            box-sizing: border-box;
+            flex-direction: column;
+            /* Quita padding-top */
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
         #maze-canvas {
             background: #fff;
@@ -278,18 +338,14 @@
             aspect-ratio: 16/9;
             touch-action: none;
             display: block;
-            margin: 0 auto;
         }
         #maze-controls {
-            /* Ya no es fixed, sino relativo y debajo del canvas */
-            width: 100vw;
+            margin-top: 18px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 12px;
-            margin-bottom: 0;
             z-index: 2;
-            position: static;
+            width: auto;
         }
         #maze-controls div {
             display: flex;
@@ -313,18 +369,6 @@
             color: #178a2c;
             border: 2px solid #ffe44d;
         }
-        #ost-text {
-            width: 100vw;
-            text-align: center;
-            z-index: 20;
-            font-family: 'Montserrat',Arial,sans-serif;
-            font-size: 1.05rem;
-            color: #fff;
-            text-shadow: 0 2px 8px #000;
-            margin-top: 10px;
-            margin-bottom: 0;
-            position: static;
-        }
     </style>
     <div id="maze-container">
         <canvas id="maze-canvas"></canvas>
@@ -338,9 +382,9 @@
                 <button id="maze-right">▶</button>
             </div>
         </div>
-        <div id="ost-text">
-            OST: Green Hill Zone - Sonic The Hedgehog
-        </div>
+    </div>
+    <div id="ost-text" style="position:fixed;bottom:18px;left:0;width:100vw;text-align:center;z-index:20;font-family:'Montserrat',Arial,sans-serif;font-size:1.05rem;color:#fff;text-shadow:0 2px 8px #000;">
+        OST: Green Hill Zone - Sonic The Hedgehog
     </div>
     <audio id="maze-audio" src="abuelotime.mp3" loop></audio>
 `;
