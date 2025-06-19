@@ -202,6 +202,63 @@
             background: #176d13;
             border: 2px solid #ffe44d;
         }
+        #maze-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            /* justify-content: center; */ /* Quita centrado vertical */
+            justify-content: flex-start;    /* Alinea arriba */
+            background: url('fonde mesa.jpg') no-repeat center center, linear-gradient(180deg, #e8f5e9 0%, #178a2c 100%);
+            background-size: cover;
+            flex-direction: column;
+        }
+        #maze-canvas {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 0 32px 4px #178a2c88, 0 0 0 4px #178a2c;
+            width: 99vw;
+            height: 75vw;
+            max-width: 520px;
+            max-height: 400px;
+            min-width: 260px;
+            min-height: 180px;
+            aspect-ratio: 16/9;
+            touch-action: none;
+            margin-top: 4vh; /* Agrega margen arriba para separar del borde */
+        }
+        #maze-controls {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+        }
+        #maze-controls div {
+            display: flex;
+            gap: 10px;
+        }
+        #maze-controls button {
+            width: 60px;
+            height: 60px;
+            font-size: 2em;
+            border-radius: 50%;
+            background: #178a2c;
+            color: #fff;
+            border: 2px solid #fff;
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-weight: bold;
+            box-shadow: 0 2px 8px #178a2c33;
+            cursor: pointer;
+        }
+        #maze-controls button:active {
+            background: #ffe44d;
+            color: #178a2c;
+            border: 2px solid #ffe44d;
+        }
     </style>
 </head>
 <body>
@@ -257,7 +314,8 @@
             height: 100vh;
             display: flex;
             align-items: center;
-            justify-content: center;
+            /* justify-content: center; */ /* Quita centrado vertical */
+            justify-content: flex-start;    /* Alinea arriba */
             background: url('fonde mesa.jpg') no-repeat center center, linear-gradient(180deg, #e8f5e9 0%, #178a2c 100%);
             background-size: cover;
             flex-direction: column;
@@ -274,6 +332,7 @@
             min-height: 180px;
             aspect-ratio: 16/9;
             touch-action: none;
+            margin-top: 4vh; /* Agrega margen arriba para separar del borde */
         }
         #maze-controls {
             position: fixed;
