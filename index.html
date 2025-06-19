@@ -676,22 +676,60 @@
                             checkWin();
                         }
                     }
-                    document.getElementById('maze-up').addEventListener('click', () => movePlayer(0, -1));
-                    document.getElementById('maze-down').addEventListener('click', () => movePlayer(0, 1));
-                    document.getElementById('maze-left').addEventListener('click', () => movePlayer(-1, 0));
-                    document.getElementById('maze-right').addEventListener('click', () => movePlayer(1, 0));
+                    // Movimiento continuo para los controles del laberinto
+                    function addHoldButton(id, dx, dy) {
+                        const btn = document.getElementById(id);
+                        let interval = null;
+                        let pressed = false;
+                        const move = () => movePlayer(dx, dy);
+                        btn.addEventListener('mousedown', () => {
+                            if (finished) return;
+                            pressed = true;
+                            move();
+                            interval = setInterval(move, 90);
+                        });
+                        btn.addEventListener('touchstart', (e) => {
+                            if (finished) return;
+                            pressed = true;
+                            move();
+                            interval = setInterval(move, 90);
+                            e.preventDefault();
+                        }, {passive: false});
+                        function clear() {
+                            pressed = false;
+                            if (interval) clearInterval(interval);
+                            interval = null;
+                        }
+                        btn.addEventListener('mouseup', clear);
+                        btn.addEventListener('mouseleave', clear);
+                        btn.addEventListener('touchend', clear);
+                        btn.addEventListener('touchcancel', clear);
+                    }
+                    addHoldButton('maze-up', 0, -1);
+                    addHoldButton('maze-down', 0, 1);
+                    addHoldButton('maze-left', -1, 0);
+                    addHoldButton('maze-right', 1, 0);
+
                     document.addEventListener('keydown', function(e) {
                         if (e.key === 'ArrowUp') movePlayer(0, -1);
                         if (e.key === 'ArrowDown') movePlayer(0, 1);
                         if (e.key === 'ArrowLeft') movePlayer(-1, 0);
                         if (e.key === 'ArrowRight') movePlayer(1, 0);
                     });
+
+                    // IA más rápida pero aún competitiva
+                    let aiTick = 0;
                     setInterval(() => {
                         if (!finished) {
-                            aiAdvance();
-                            checkWin();
+                            aiTick++;
+                            // La IA avanza cada 2 ticks (~cada 285ms)
+                            if (aiTick % 2 === 0) {
+                                aiAdvance();
+                                checkWin();
+                            }
                         }
-                    }, 190);
+                    }, 115);
+
                     requestAnimationFrame(function loop() {
                         if (!finished) draw();
                         requestAnimationFrame(loop);
