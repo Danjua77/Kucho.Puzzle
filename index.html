@@ -246,350 +246,247 @@
         const btnContinuar = document.getElementById('btn-continuar');
         btnContinuar.addEventListener('click', function() {
             if (arbolChanDialogStep === 0) {
-                arbolChanTexto.innerHTML = "Si quieres la siguiente pista tendrás que demostrar que eres más rápido que yo...<br>pero cuidado, una chica me dío 3 latas de monster, olvidé dónde vivo...<br>y no me interesa regresar.";
+                arbolChanTexto.innerHTML = `Si quieres la siguiente pista tendrás que demostrar que eres más rápido que yo...<br>pero cuidado, una chica me regalo una monster, olvidé dónde vivo...<br>y no me interesa regresar.`;
                 arbolChanDialogStep = 1;
             } else {
-                // Muestra el canvas y el cuadro azul, pero el juego inicia tras el contador
+                // Reemplaza el juego de pingpong por el laberinto, pero mantén las pantallas de ganar/perder
                 document.body.innerHTML = `
     <style>
-        /* ... pong styles already included above ... */
+        #maze-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: url('fonde mesa.jpg') no-repeat center center, linear-gradient(180deg, #e8f5e9 0%, #178a2c 100%);
+            background-size: cover;
+            flex-direction: column;
+        }
+        #maze-canvas {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 0 32px 4px #178a2c88, 0 0 0 4px #178a2c;
+            width: 99vw;
+            height: 75vw;
+            max-width: 520px;
+            max-height: 400px;
+            min-width: 260px;
+            min-height: 180px;
+            aspect-ratio: 16/9;
+            touch-action: none;
+        }
+        #maze-controls {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+        }
+        #maze-controls div {
+            display: flex;
+            gap: 10px;
+        }
+        #maze-controls button {
+            width: 60px;
+            height: 60px;
+            font-size: 2em;
+            border-radius: 50%;
+            background: #178a2c;
+            color: #fff;
+            border: 2px solid #fff;
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-weight: bold;
+            box-shadow: 0 2px 8px #178a2c33;
+            cursor: pointer;
+        }
+        #maze-controls button:active {
+            background: #ffe44d;
+            color: #178a2c;
+            border: 2px solid #ffe44d;
+        }
     </style>
-    <div id="pong-container">
-        <!-- Image above the blue box -->
-        <img src="abuelo.sama.png" alt="Don Árbol" style="width:28vw;max-width:110px;min-width:60px;margin-bottom:1.2vh;margin-top:calc(2vh - 20px);z-index:2;position:absolute;top:calc(2vh - 17px);left:50%;transform:translateX(-50%);" id="pong-top-img" />
-        <canvas id="pong-canvas"></canvas>
-        <div id="pong-countdown"
-            style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:50;pointer-events:none;">
-            <span id="pong-countdown-num"
-                style="font-family:'Montserrat',Arial,sans-serif;font-size:4rem;color:#fff;text-shadow:0 2px 16px #178a2c,0 0 12px #fff;">
-                3
-            </span>
+    <div id="maze-container">
+        <canvas id="maze-canvas"></canvas>
+        <div id="maze-controls">
+            <div>
+                <button id="maze-up">▲</button>
+            </div>
+            <div>
+                <button id="maze-left">◀</button>
+                <button id="maze-down">▼</button>
+                <button id="maze-right">▶</button>
+            </div>
         </div>
     </div>
     <div id="ost-text" style="position:fixed;bottom:18px;left:0;width:100vw;text-align:center;z-index:20;font-family:'Montserrat',Arial,sans-serif;font-size:1.05rem;color:#fff;text-shadow:0 2px 8px #000;">
-        OST: Mt. Dedede - Kirby's Dream Land
+        OST: Green Hill Zone - Sonic The Hedgehog
     </div>
-    <audio id="pong-audio" src="pingpongtime.mp3" loop></audio>
+    <audio id="maze-audio" src="abuelotime.mp3" loop></audio>
 `;
                 setTimeout(() => {
-                    const canvas = document.getElementById('pong-canvas');
+                    // --- Código del juego de laberinto con pantallas de ganar/perder ---
+                    const canvas = document.getElementById('maze-canvas');
                     const ctx = canvas.getContext('2d');
-                    // --- Pong game logic (idéntico al flujo original) ---
-                    function getGameSize() {
-                        return { w: canvas.width, h: canvas.height };
+                    let W = canvas.width, H = canvas.height;
+                    function getOptimalMazeSize() {
+                        const maxCols = 60, maxRows = 40, minCell = 14;
+                        let cols = Math.floor(W / minCell);
+                        let rows = Math.floor(H / minCell);
+                        cols = Math.min(cols, maxCols);
+                        rows = Math.min(rows, maxRows);
+                        if (cols % 2 === 0) cols--;
+                        if (rows % 2 === 0) rows--;
+                        return {cols, rows};
+                    }
+                    let MAZE_COLS, MAZE_ROWS, CELL, OFFSET_X, OFFSET_Y, maze, player, ai;
+                    function recalcCellAndOffsets() {
+                        const size = getOptimalMazeSize();
+                        MAZE_COLS = size.cols;
+                        MAZE_ROWS = size.rows;
+                        CELL = Math.min(W / MAZE_COLS, H / MAZE_ROWS);
+                        OFFSET_X = (W - (CELL * MAZE_COLS)) / 2;
+                        OFFSET_Y = (H - (CELL * MAZE_ROWS)) / 2;
+                    }
+                    function generateMaze(cols, rows) {
+                        const maze = Array.from({length: rows}, () => Array(cols).fill(0));
+                        function carve(x, y) {
+                            maze[y][x] = 1;
+                            const dirs = [[1,0],[-1,0],[0,1],[0,-1]].sort(()=>Math.random()-0.5);
+                            for (const [dx,dy] of dirs) {
+                                const nx = x + dx*2, ny = y + dy*2;
+                                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && maze[ny][nx] === 0) {
+                                    maze[y+dy][x+dx] = 1;
+                                    carve(nx, ny);
+                                }
+                            }
+                        }
+                        carve(0, Math.floor(rows/2));
+                        maze[Math.floor(rows/2)][0] = 1;
+                        maze[Math.floor(rows/2)][cols-1] = 1;
+                        return maze;
+                    }
+                    function getPlayerSize() {
+                        return CELL * 0.7;
+                    }
+                    function getPlayerOffset() {
+                        return (CELL - getPlayerSize()) / 2;
+                    }
+                    function resetMazeAndPlayers() {
+                        recalcCellAndOffsets();
+                        maze = generateMaze(MAZE_COLS, MAZE_ROWS);
+                        player = {
+                            x: 0,
+                            y: Math.floor(MAZE_ROWS/2),
+                            color: '#ffe44d',
+                            path: [],
+                            step: 0,
+                        };
+                        ai = {
+                            x: 0,
+                            y: Math.floor(MAZE_ROWS/2),
+                            color: '#e53935', // rojo
+                            path: [],
+                            step: 0,
+                        };
+                        player.path = findPath(player.x, player.y, MAZE_COLS-1, player.y, maze);
+                        ai.path = findPath(ai.x, ai.y, MAZE_COLS-1, ai.y, maze, 0.2);
                     }
                     function resizeCanvas() {
                         const rect = canvas.getBoundingClientRect();
                         canvas.width = rect.width;
                         canvas.height = rect.height;
+                        W = canvas.width; H = canvas.height;
+                        resetMazeAndPlayers();
                     }
                     resizeCanvas();
-                    window.addEventListener('resize', resizeCanvas);
-
-                    function rel(val, axis) {
-                        const { w, h } = getGameSize();
-                        return axis === 'w' ? val * w : val * h;
-                    }
-                    function paddleW() { return rel(0.22, 'w'); }
-                    function paddleH() { return rel(0.025, 'h'); }
-                    function paddleMargin() { return rel(0.03, 'h'); }
-                    function ballSize() { return rel(0.035, 'w'); }
-
-                    let aiTimer = 15.0;
-                    let aiFrozen = false;
-                    let aiFreezeTimer = 0;
-                    let aiTimerLastUpdate = Date.now();
-
-                    let player = { x: 0, y: 0, w: paddleW(), h: paddleH(), score: 0 };
-                    let ai = { x: 0, y: 0, w: paddleW(), h: paddleH(), score: 0 };
-                    let ball = { x: 0, y: 0, vx: 0, vy: 0, size: ballSize() };
-                    let running = false; // El juego inicia después del contador
-                    let touchX = null;
-
-                    function resetPositions(servingToPlayer = false) {
-                        const { w, h } = getGameSize();
-                        player.w = paddleW(); player.h = paddleH();
-                        ai.w = paddleW(); ai.h = paddleH();
-                        player.x = w/2 - player.w/2;
-                        player.y = h - paddleMargin() - player.h;
-                        ai.x = w/2 - ai.w/2;
-                        ai.y = paddleMargin();
-                        ball.size = ballSize();
-                        ball.x = w/2 - ball.size/2;
-                        ball.y = h/2 - ball.size/2;
-                        let angle = (Math.random() * 0.5 - 0.25);
-                        let baseSpeed = rel(0.018, 'h');
-                        if (servingToPlayer) {
-                            ball.vy = -baseSpeed;
-                            ball.vx = angle * baseSpeed * 2;
-                        } else {
-                            ball.vy = baseSpeed;
-                            ball.vx = angle * baseSpeed * 2;
-                        }
-                        let speed = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
-                        if (speed !== 0) {
-                            ball.vx *= baseSpeed/speed;
-                            ball.vy *= baseSpeed/speed;
-                        }
-                        aiTimerLastUpdate = Date.now();
-                    }
-
-                    function drawTable() {
-                        const { w, h } = getGameSize();
-                        ctx.save();
-                        ctx.fillStyle = "#2b4fa2";
-                        ctx.globalAlpha = 0.93;
-                        ctx.fillRect(rel(0.03, 'w'), rel(0.02, 'h'), w - rel(0.06, 'w'), h - rel(0.04, 'h'));
-                        ctx.globalAlpha = 1;
-                        ctx.strokeStyle = "#fff";
-                        ctx.lineWidth = rel(0.012, 'w');
-                        ctx.strokeRect(rel(0.03, 'w'), rel(0.02, 'h'), w - rel(0.06, 'w'), h - rel(0.04, 'h'));
-                        ctx.beginPath();
-                        ctx.moveTo(rel(0.03, 'w'), h/2);
-                        ctx.lineTo(w - rel(0.03, 'w'), h/2);
-                        ctx.setLineDash([rel(0.04, 'w'), rel(0.025, 'w')]);
-                        ctx.lineWidth = rel(0.008, 'w');
-                        ctx.stroke();
-                        ctx.setLineDash([]);
-                        ctx.beginPath();
-                        ctx.strokeStyle = "#e0e0e0";
-                        ctx.lineWidth = rel(0.012, 'h');
-                        ctx.moveTo(rel(0.03, 'w'), h/2);
-                        ctx.lineTo(w - rel(0.03, 'w'), h/2);
-                        ctx.stroke();
-                        ctx.restore();
-                    }
-
-                    function drawScore() {
-                        const { w, h } = getGameSize();
-                        ctx.font = `bold ${rel(0.08, 'w')}px 'Montserrat', Arial, sans-serif`;
-                        ctx.textAlign = "center";
-                        ctx.fillStyle = "#ffe44d";
-                        ctx.shadowColor = "#178a2c";
-                        ctx.shadowBlur = 8;
-                        ctx.fillText(player.score, w/2, h - rel(0.07, 'h'));
-                        ctx.fillText(ai.score, w/2, rel(0.11, 'h'));
-                        ctx.shadowBlur = 0;
-                    }
-
-                    function drawPaddle(p, isPlayer) {
-                        const ctx = canvas.getContext('2d');
-                        ctx.save();
-                        if (isPlayer) {
-                            ctx.fillStyle = "#ffe44d";
-                            ctx.shadowColor = "#178a2c";
-                            ctx.shadowBlur = 8;
-                            ctx.fillRect(p.x, p.y, p.w, p.h);
-                        } else {
-                            // Cambia a gris si la IA está paralizada
-                            ctx.fillStyle = aiFrozen ? "#b0b0b0" : "#fff";
-                            ctx.shadowColor = "#2b4fa2";
-                            ctx.shadowBlur = 4;
-                            ctx.fillRect(p.x, p.y, p.w, p.h);
-                        }
-                        ctx.restore();
-                    }
-
-                    function drawAITimer() {
-                        const { w } = getGameSize();
-                        ctx.save();
-                        ctx.font = `bold ${rel(0.06, 'w')}px 'Montserrat', Arial, sans-serif`;
-                        ctx.textAlign = "center";
-                        ctx.textBaseline = "top";
-                        // Cambia a gris si la IA está paralizada
-                        let color = aiFrozen ? "#b0b0b0" : "#fff";
-                        let timerValue = aiFrozen ? aiFreezeTimer : aiTimer;
-                        let timerText = timerValue.toFixed(1);
-                        const timerX = ai.x + ai.w/2;
-                        const timerY = ai.y + ai.h + rel(0.012, 'h');
-                        ctx.fillStyle = color;
-                        ctx.shadowColor = "#178a2c";
-                        ctx.shadowBlur = 8;
-                        ctx.fillText(timerText, timerX, timerY);
-                        ctx.restore();
-                    }
-
-                    function drawBall() {
-                        ctx.save();
-                        ctx.fillStyle = "#fff";
-                        ctx.shadowColor = "#ffe44d";
-                        ctx.shadowBlur = 8;
-                        ctx.beginPath();
-                        ctx.arc(ball.x + ball.size/2, ball.y + ball.size/2, ball.size/2, 0, 2*Math.PI);
-                        ctx.fill();
-                        ctx.restore();
-                    }
-
-                    function draw() {
-                        const { w, h } = getGameSize();
-                        ctx.clearRect(0, 0, w, h);
-                        drawTable();
-                        drawScore();
-                        drawPaddle(player, true);
-                        drawPaddle(ai, false);
-                        drawBall();
-                        drawAITimer();
-                    }
-
-                    function clamp(val, min, max) {
-                        return Math.max(min, Math.min(max, val));
-                    }
-
-                    function handleMoveFromCanvas(x) {
-                        const { w } = getGameSize();
-                        player.x = clamp(x - player.w/2, rel(0.03, 'w'), w - rel(0.03, 'w') - player.w);
-                    }
-                    function getCanvasRelativeX(e) {
-                        const rect = canvas.getBoundingClientRect();
-                        if (e.touches && e.touches.length > 0) {
-                            return (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
-                        } else if (typeof e.clientX === "number") {
-                            return (e.clientX - rect.left) * (canvas.width / rect.width);
-                        }
-                        return 0;
-                    }
-                    canvas.addEventListener('touchstart', function(e) {
-                        handleMoveFromCanvas(getCanvasRelativeX(e));
-                        e.preventDefault();
-                    });
-                    canvas.addEventListener('touchmove', function(e) {
-                        handleMoveFromCanvas(getCanvasRelativeX(e));
-                        e.preventDefault();
-                    });
-                    canvas.addEventListener('mousedown', function(e) {
-                        handleMoveFromCanvas(getCanvasRelativeX(e));
-                        touchX = true;
-                    });
-                    canvas.addEventListener('mousemove', function(e) {
-                        if (touchX) {
-                            handleMoveFromCanvas(getCanvasRelativeX(e));
-                        }
-                    });
-                    canvas.addEventListener('mouseup', function() {
-                        touchX = null;
-                    });
-                    canvas.addEventListener('mouseleave', function() {
-                        touchX = null;
-                    });
-
-                    function aiMove() {
-                        if (aiFrozen) return;
-                        const { w } = getGameSize();
-                        let center = ai.x + ai.w/2;
-                        let target = ball.x + ball.size/2;
-                        let dx = target - center;
-                        ai.x += dx;
-                        ai.x = clamp(ai.x, rel(0.03, 'w'), w - rel(0.03, 'w') - ai.w);
-                    }
-
-                    function updateAITimer(dt) {
-                        if (!aiFrozen) {
-                            aiTimer -= dt;
-                            if (aiTimer <= 0) {
-                                aiFrozen = true;
-                                aiFreezeTimer = 3.0;
-                                aiTimer = 0;
-                            }
-                        } else {
-                            aiFreezeTimer -= dt;
-                            if (aiFreezeTimer <= 0) {
-                                aiFrozen = false;
-                                aiTimer = 15.0;
-                                aiFreezeTimer = 0;
-                            }
-                        }
-                    }
-
-                    function update() {
-                        const { w, h } = getGameSize();
-                        let now = Date.now();
-                        let dt = (now - aiTimerLastUpdate) / 1000;
-                        aiTimerLastUpdate = now;
-                        if (running) updateAITimer(dt);
-
-                        ball.x += ball.vx;
-                        ball.y += ball.vy;
-
-                        if (ball.x < 0) {
-                            ball.x = 0; ball.vx *= -1;
-                        }
-                        if (ball.x + ball.size > w) {
-                            ball.x = w - ball.size; ball.vx *= -1;
-                        }
-
-                        if (
-                            ball.y + ball.size >= player.y &&
-                            ball.y + ball.size <= player.y + player.h + rel(0.01, 'h') &&
-                            ball.x + ball.size > player.x &&
-                            ball.x < player.x + player.w &&
-                            ball.vy > 0
-                        ) {
-                            ball.y = player.y - ball.size;
-                            ball.vy *= -1;
-                            let hit = ((ball.x + ball.size/2) - (player.x + player.w/2)) / (player.w/2);
-                            ball.vx += hit * rel(0.006, 'w');
-                            let baseSpeed = rel(0.018, 'h');
-                            let speed = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
-                            if (speed !== 0) {
-                                ball.vx *= baseSpeed/speed;
-                                ball.vy *= baseSpeed/speed;
-                            }
-                        }
-                        if (
-                            ball.y <= ai.y + ai.h &&
-                            ball.y >= ai.y - rel(0.01, 'h') &&
-                            ball.x + ball.size > ai.x &&
-                            ball.x < ai.x + ai.w &&
-                            ball.vy < 0
-                        ) {
-                            ball.y = ai.y + ai.h;
-                            ball.vy *= -1;
-                            let hit = ((ball.x + ball.size/2) - (ai.x + ai.w/2)) / (ai.w/2);
-                            ball.vx += hit * rel(0.006, 'w');
-                            let baseSpeed = rel(0.018, 'h');
-                            let speed = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
-                            if (speed !== 0) {
-                                ball.vx *= baseSpeed/speed;
-                                ball.vy *= baseSpeed/speed;
-                            }
-                        }
-
-                        if (ball.y < 0) {
-                            player.score++;
-                            if (player.score >= 5) {
-                                running = false;
-                                setTimeout(() => showEndScreen(true), 700);
-                            } else {
-                                resetPositions(false);
-                            }
-                        }
-                        if (ball.y + ball.size > getGameSize().h) {
-                            ai.score++;
-                            if (ai.score >= 5) {
-                                running = false;
-                                setTimeout(() => showEndScreen(false), 700);
-                            } else {
-                                resetPositions(true);
-                            }
-                        }
-                    }
-
-                    function gameLoop() {
+                    window.addEventListener('resize', () => {
+                        resizeCanvas();
                         draw();
-                        if (running) {
-                            aiMove();
-                            update();
-                        }
-                        requestAnimationFrame(gameLoop);
+                    });
+                    function heuristic(ax, ay, bx, by) {
+                        return Math.abs(ax-bx) + Math.abs(ay-by);
                     }
-
+                    function findPath(sx, sy, ex, ey, maze, randomness=0) {
+                        const cols = maze[0].length, rows = maze.length;
+                        const open = [[sx, sy, 0, heuristic(sx,sy,ex,ey), null]];
+                        const visited = Array.from({length: rows}, () => Array(cols).fill(false));
+                        while (open.length) {
+                            open.sort((a,b)=>a[2]+a[3]-b[2]-b[3]);
+                            const [x, y, g, h, prev] = open.shift();
+                            if (x === ex && y === ey) {
+                                const path = [[x,y]];
+                                let p = prev;
+                                while (p) { path.push([p[0],p[1]]); p = p[4]; }
+                                return path.reverse();
+                            }
+                            if (visited[y][x]) continue;
+                            visited[y][x] = true;
+                            for (const [dx,dy] of [[1,0],[0,1],[0,-1],[-1,0]]) {
+                                const nx = x+dx, ny = y+dy;
+                                if (nx>=0 && nx<cols && ny>=0 && ny<rows && maze[ny][nx]===1 && !visited[ny][nx]) {
+                                    open.push([nx,ny,g+1,heuristic(nx,ny,ex,ey), [x,y,g,h,prev]]);
+                                }
+                            }
+                        }
+                        return null;
+                    }
+                    function draw() {
+                        ctx.clearRect(0,0,W,H);
+                        ctx.fillStyle = "#fff";
+                        ctx.fillRect(0, 0, W, H);
+                        for (let y=0; y<MAZE_ROWS; y++) {
+                            for (let x=0; x<MAZE_COLS; x++) {
+                                if (maze[y][x] === 0) {
+                                    ctx.fillStyle = '#178a2c';
+                                    ctx.fillRect(OFFSET_X + x*CELL, OFFSET_Y + y*CELL, CELL, CELL);
+                                }
+                            }
+                        }
+                        const goalX = MAZE_COLS-1, goalY = Math.floor(MAZE_ROWS/2);
+                        const t = Date.now();
+                        const glow = 0.5 + 0.5 * Math.sin(t/220);
+                        ctx.save();
+                        ctx.shadowColor = "#ff0";
+                        ctx.shadowBlur = 20 + 20 * glow;
+                        ctx.globalAlpha = 0.9;
+                        ctx.fillStyle = "#ff0";
+                        ctx.fillRect(
+                            OFFSET_X + goalX*CELL + 2,
+                            OFFSET_Y + goalY*CELL + 2,
+                            CELL - 4, CELL - 4
+                        );
+                        ctx.restore();
+                        ctx.fillStyle = ai.color;
+                        ctx.fillRect(
+                            OFFSET_X + ai.x*CELL + getPlayerOffset(),
+                            OFFSET_Y + ai.y*CELL + getPlayerOffset(),
+                            getPlayerSize(), getPlayerSize()
+                        );
+                        ctx.fillStyle = player.color;
+                        ctx.fillRect(
+                            OFFSET_X + player.x*CELL + getPlayerOffset(),
+                            OFFSET_Y + player.y*CELL + getPlayerOffset(),
+                            getPlayerSize(), getPlayerSize()
+                        );
+                    }
+                    function aiAdvance() {
+                        if (ai.step < ai.path.length-1) {
+                            ai.step++;
+                            ai.x = ai.path[ai.step][0];
+                            ai.y = ai.path[ai.step][1];
+                        }
+                    }
+                    let finished = false;
                     function showEndScreen(playerWon) {
-                        const pongContainer = document.getElementById('pong-container');
+                        finished = true;
+                        const mazeContainer = document.getElementById('maze-container');
                         let html = '';
                         if (playerWon) {
-                            // Dialog box with background, image, title, text and button
                             html = `
-                                <div class="arbol-chan-container" id="pong-end" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:10;background:url('Fondo texto.jpg') no-repeat center center;background-size:cover;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+                                <div class="arbol-chan-container" id="maze-end" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:10;background:url('Fondo texto.jpg') no-repeat center center;background-size:cover;display:flex;flex-direction:column;justify-content:center;align-items:center;">
                                     <div class="arbol-chan-content" style="background:none;box-shadow:none;">
                                         <img src="abuelo.sama.png" class="arbol-chan-img" alt="Don Árbol" style="opacity:1;transform:none;margin-bottom:0.7rem;" />
                                         <div class="arbol-chan-titulo" style="color:#178a2c;margin-bottom:0.7rem;">Kucho</div>
@@ -600,21 +497,20 @@
                                             Busca el lugar, observa con atención... y encuentra el código.<br>
                                             Y recuerde nunca rendirse.
                                         </div>
-                                        <button id="pong-show-clue" class="btn-continuar" style="margin-top:1.2rem;">Ver pista</button>
+                                        <button id="maze-show-clue" class="btn-continuar" style="margin-top:1.2rem;">Ver pista</button>
                                     </div>
                                 </div>
                             `;
-                            pongContainer.insertAdjacentHTML('beforeend', html);
-                            document.getElementById('pong-show-clue').onclick = function() {
-                                // Replace dialog with the clue
-                                document.getElementById('pong-end').innerHTML = `
+                            mazeContainer.insertAdjacentHTML('beforeend', html);
+                            document.getElementById('maze-show-clue').onclick = function() {
+                                document.getElementById('maze-end').innerHTML = `
                                     <h2 style="margin-top:0;">Siguiente pista</h2>
-                                    <div id="pong-next-img" style="margin:0; padding:0;">
+                                    <div id="maze-next-img" style="margin:0; padding:0;">
                                         <img src="gym.jpeg" alt="Pista" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:12px 12px 12px 12px;">
                                     </div>
-                                    <button id="pong-continue" style="font-size:1.3rem;background:#178a2c;color:#fff;border:2px solid #fff;border-radius:8px;padding:0.7rem 2.5rem;font-weight:bold;font-family:'Montserrat',Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;margin-top:1.5rem;margin-bottom:2rem;">Continuar</button>
+                                    <button id="maze-continue" style="font-size:1.3rem;background:#178a2c;color:#fff;border:2px solid #fff;border-radius:8px;padding:0.7rem 2.5rem;font-weight:bold;font-family:'Montserrat',Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;margin-top:1.5rem;margin-bottom:2rem;">Continuar</button>
                                 `;
-                                document.getElementById('pong-continue').onclick = function() {
+                                document.getElementById('maze-continue').onclick = function() {
                                     window.location.href = "https://danjua77.github.io/Sagrado.Puzzle/";
                                 };
                             };
@@ -622,63 +518,69 @@
                             html = `
                                 <div id="pong-end">
                                     <img src="abuelo.sama.png" class="arbol-img" alt="Don Árbol" />
-                                    <h2>Qué desafortunado...</h2>
+                                    <h2>Muy lento....</h2>
                                     <button id="pong-retry">Continuar</button>
                                 </div>
                             `;
-                            pongContainer.insertAdjacentHTML('beforeend', html);
+                            mazeContainer.insertAdjacentHTML('beforeend', html);
                             document.getElementById('pong-retry').onclick = function() {
                                 location.reload();
                             };
                         }
                     }
-
-                    function updateSizes() {
-                        resetPositions();
+                    function checkWin() {
+                        if (finished) return;
+                        if (player.x === MAZE_COLS-1 && player.y === player.path[0][1]) {
+                            showEndScreen(true);
+                        } else if (ai.x === MAZE_COLS-1 && ai.y === ai.path[0][1]) {
+                            showEndScreen(false);
+                        }
                     }
-                    window.addEventListener('resize', function() {
-                        updateSizes();
+                    function movePlayer(dx, dy) {
+                        if (finished) return;
+                        const nx = player.x + dx;
+                        const ny = player.y + dy;
+                        if (
+                            nx >= 0 && nx < MAZE_COLS &&
+                            ny >= 0 && ny < MAZE_ROWS &&
+                            maze[ny][nx] === 1
+                        ) {
+                            player.x = nx;
+                            player.y = ny;
+                            checkWin();
+                        }
+                    }
+                    document.getElementById('maze-up').addEventListener('click', () => movePlayer(0, -1));
+                    document.getElementById('maze-down').addEventListener('click', () => movePlayer(0, 1));
+                    document.getElementById('maze-left').addEventListener('click', () => movePlayer(-1, 0));
+                    document.getElementById('maze-right').addEventListener('click', () => movePlayer(1, 0));
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'ArrowUp') movePlayer(0, -1);
+                        if (e.key === 'ArrowDown') movePlayer(0, 1);
+                        if (e.key === 'ArrowLeft') movePlayer(-1, 0);
+                        if (e.key === 'ArrowRight') movePlayer(1, 0);
+                    });
+                    setInterval(() => {
+                        if (!finished) {
+                            aiAdvance();
+                            checkWin();
+                        }
+                    }, 190);
+                    requestAnimationFrame(function loop() {
+                        if (!finished) draw();
+                        requestAnimationFrame(loop);
                     });
 
-                    player.score = 0; ai.score = 0;
-                    aiTimer = 15.0;
-                    aiFrozen = false;
-                    aiFreezeTimer = 0;
-                    resetPositions(false);
-
-                    // --- Contador de 3 a 1 ---
-                    let countdown = 3;
-                    const updateCountdown = () => {
-                        const numElem = document.getElementById('pong-countdown-num');
-                        if (numElem) numElem.textContent = countdown > 0 ? countdown : "";
-                    };
-                    updateCountdown();
-
-                    // Inicia la música apenas inicia el contador
-                    const audio = document.getElementById('pong-audio');
+                    // Música
+                    const audio = document.getElementById('maze-audio');
                     if (audio) {
                         audio.currentTime = 0;
                         audio.play().catch(()=>{});
-                        // Asegura que la música se repita aunque falle el atributo loop
                         audio.addEventListener('ended', function() {
                             audio.currentTime = 0;
                             audio.play().catch(()=>{});
                         });
                     }
-
-                    const countdownInterval = setInterval(() => {
-                        countdown--;
-                        updateCountdown();
-                        if (countdown === 0) {
-                            clearInterval(countdownInterval);
-                            // Oculta el contador y arranca el juego
-                            const countdownDiv = document.getElementById('pong-countdown');
-                            if (countdownDiv) countdownDiv.style.display = 'none';
-                            running = true;
-                        }
-                    }, 1000);
-
-                    gameLoop();
                 }, 10);
             }
         });
