@@ -611,6 +611,12 @@
                     let finished = false;
                     function showEndScreen(playerWon) {
                         finished = true;
+                        // Detener la música al finalizar
+                        const mazeAudio = document.getElementById('maze-audio');
+                        if (mazeAudio) {
+                            mazeAudio.pause();
+                            mazeAudio.currentTime = 0;
+                        }
                         const mazeContainer = document.getElementById('maze-container');
                         let html = '';
                         if (playerWon) {
@@ -626,8 +632,8 @@
             </div>
         </div>
                             `;
-                            mazeContainer.insertAdjacentHTML('beforeend', html);
-                            document.getElementById('maze-show-clue').onclick = function() {
+        mazeContainer.insertAdjacentHTML('beforeend', html);
+        document.getElementById('maze-show-clue').onclick = function() {
     // Usa el mismo espacio para imagen que el ejemplo (pong-next-img)
     document.getElementById('maze-end').innerHTML = `
         <div class="arbol-chan-titulo" style="color:#178a2c;margin-bottom:0.7rem;font-size:2.2rem;text-shadow:0 2px 12px #fff,0 0 12px #178a2c,2px 2px 0 #fff;">
@@ -644,18 +650,18 @@
 };
                         } else {
                             html = `
-                                <div id="pong-end">
-                                    <img src="abuelo.sama.png" class="arbol-img" alt="Don Árbol" />
-                                    <h2>Muy lento....</h2>
-                                    <button id="pong-retry">Continuar</button>
-                                </div>
-                            `;
-                            mazeContainer.insertAdjacentHTML('beforeend', html);
-                            document.getElementById('pong-retry').onclick = function() {
-                                location.reload();
-                            };
-                        }
-                    }
+            <div id="pong-end">
+                <img src="abuelo.sama.png" class="arbol-img" alt="Don Árbol" />
+                <h2>Muy lento....</h2>
+                <button id="pong-retry">Continuar</button>
+            </div>
+        `;
+        mazeContainer.insertAdjacentHTML('beforeend', html);
+        document.getElementById('pong-retry').onclick = function() {
+            location.reload();
+        };
+    }
+}
                     function checkWin() {
                         if (finished) return;
                         if (player.x === MAZE_COLS-1 && player.y === player.path[0][1]) {
